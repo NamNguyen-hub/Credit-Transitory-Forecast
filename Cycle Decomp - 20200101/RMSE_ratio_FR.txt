@@ -1,0 +1,77 @@
+[1] "Bates-Granger weight combination forecast"
+[1] "rmse1_varbg/rmse1_ar; rmse2_varbg/rmse2_ar;rmse3_varbg/rmse3_ar; rmse4_varbg/rmse4_ar;rmse14_varbg/rmse14_ar"
+[1] 0.9972373
+[1] 0.9979126
+[1] 1.004786
+[1] 1.002541
+[1] 1.009631
+[1] "Average Combination RMSE ratio"
+[1] "rmse1_varcomb/rmse1_ar; rmse2_varcomb/rmse2_ar;rmse3_varcomb/rmse3_ar; rmse4_varcomb/rmse4_ar; rmse14_varcomb/rmse14_ar"
+[1] 1.018968
+[1] 1.026394
+[1] 1.026493
+[1] 1.02727
+[1] 1.048966
+[1] "BN filter"
+[1] "rmse1_var8/rmse1_ar; rmse2_var8/rmse2_ar;rmse3_var8/rmse3_ar; rmse4_var8/rmse4_ar; rmse14_var8/rmse14_ar"
+[1] 1.014539
+[1] 1.001804
+[1] 1.006754
+[1] 1.004283
+[1] 1.013462
+[1] "HP filter with lambda = 1600"
+[1] "rmse1_var1/rmse1_ar; rmse2_var1/rmse2_ar;rmse3_var1/rmse3_ar; rmse4_var1/rmse4_ar; rmse14_var1/rmse14_ar"
+[1] 1.007859
+[1] 1.005906
+[1] 1.015577
+[1] 1.014802
+[1] 1.019201
+[1] "HP filter with lambda = 3,000"
+[1] "rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar"
+[1] 1.008607
+[1] 1.011298
+[1] 1.027142
+[1] 1.026832
+[1] 1.033095
+[1] "HP filter with lambda = 400,000"
+[1] "rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar"
+[1] 1.008607
+[1] 1.011298
+[1] 1.027142
+[1] 1.026832
+[1] 1.033095
+[1] "Hamilton filter"
+[1] "rmse1_var4/rmse1_ar; rmse2_var4/rmse2_ar;rmse3_var4/rmse3_ar; rmse4_var4/rmse4_ar; rmse14_var4/rmse14_ar"
+[1] 1.014539
+[1] 1.001804
+[1] 1.006754
+[1] 1.004283
+[1] 1.013462
+[1] "BW filter"
+[1] "rmse1_var5/rmse1_ar; rmse2_var5/rmse2_ar;rmse3_var5/rmse3_ar; rmse4_var5/rmse4_ar; rmse14_var5/rmse14_ar"
+[1] 1.319884
+[1] 1.489714
+[1] 1.478337
+[1] 1.411629
+[1] 1.755942
+[1] "linear filter"
+[1] "rmse1_var6/rmse1_ar; rmse2_var6/rmse2_ar;rmse3_var6/rmse3_ar; rmse4_var6/rmse4_ar; rmse14_var6/rmse14_ar"
+[1] 1.098593
+[1] 1.133363
+[1] 1.130407
+[1] 1.128675
+[1] 1.232228
+[1] "quad filter"
+[1] "rmse1_var7/rmse1_ar; rmse2_var7/rmse2_ar;rmse3_var7/rmse3_ar; rmse4_var7/rmse4_ar; rmse14_var7/rmse14_ar"
+[1] 1.072785
+[1] 1.09774
+[1] 1.081294
+[1] 1.070749
+[1] 1.147249
+[1] "UC filter"
+[1] "rmse1_var9/rmse1_ar; rmse2_var9/rmse2_ar;rmse3_var9/rmse3_ar; rmse4_var9/rmse4_ar; rmse14_var9/rmse14_ar"
+[1] 1.003757
+[1] 1.004212
+[1] 0.9990046
+[1] 0.9962471
+[1] 1.001163
