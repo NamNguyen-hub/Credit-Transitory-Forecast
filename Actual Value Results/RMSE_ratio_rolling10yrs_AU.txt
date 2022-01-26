@@ -1,0 +1,90 @@
+[1] "Average Combination RMSE ratio"
+[1] "rmse1_varcomb/rmse1_ar; rmse2_varcomb/rmse2_ar;rmse3_varcomb/rmse3_ar; rmse4_varcomb/rmse4_ar; rmse14_varcomb/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.8661   Min.   :0.8609   Min.   :0.8088   Min.   :0.8077   Min.   :0.7168  
+ 1st Qu.:0.9110   1st Qu.:0.9230   1st Qu.:0.9087   1st Qu.:0.8963   1st Qu.:0.8237  
+ Median :0.9390   Median :0.9613   Median :0.9600   Median :1.0022   Median :0.9413  
+ Mean   :0.9374   Mean   :0.9535   Mean   :0.9519   Mean   :0.9794   Mean   :0.9167  
+ 3rd Qu.:0.9591   3rd Qu.:0.9805   3rd Qu.:0.9905   3rd Qu.:1.0274   3rd Qu.:0.9603  
+ Max.   :1.0022   Max.   :1.0458   Max.   :1.1762   Max.   :1.2455   Max.   :1.1759  
+[1] "Average Combination RMSE ratio"
+[1] "rmse1_varcomb/rmse1_ar; rmse2_varcomb/rmse2_ar;rmse3_varcomb/rmse3_ar; rmse4_varcomb/rmse4_ar; rmse14_varcomb/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.8820   Min.   :0.8606   Min.   :0.8104   Min.   :0.8037   Min.   :0.7325  
+ 1st Qu.:0.9361   1st Qu.:0.9350   1st Qu.:0.9116   1st Qu.:0.9072   1st Qu.:0.8446  
+ Median :0.9537   Median :0.9633   Median :0.9641   Median :1.0113   Median :0.9564  
+ Mean   :0.9547   Mean   :0.9575   Mean   :0.9524   Mean   :0.9866   Mean   :0.9325  
+ 3rd Qu.:0.9818   3rd Qu.:0.9831   3rd Qu.:0.9815   3rd Qu.:1.0245   3rd Qu.:0.9792  
+ Max.   :1.0148   Max.   :1.0524   Max.   :1.1926   Max.   :1.3001   Max.   :1.2209  
+[1] "BN filter"
+[1] "rmse1_var7/rmse1_ar; rmse2_var7/rmse2_ar;rmse3_var7/rmse3_ar; rmse4_var7/rmse4_ar; rmse14_var7/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.9682   Min.   :0.9324   Min.   :0.9147   Min.   :0.9316   Min.   :0.8859  
+ 1st Qu.:0.9940   1st Qu.:0.9796   1st Qu.:0.9781   1st Qu.:0.9882   1st Qu.:0.9744  
+ Median :1.0063   Median :0.9906   Median :0.9902   Median :1.0011   Median :0.9922  
+ Mean   :1.0091   Mean   :0.9905   Mean   :0.9886   Mean   :1.0035   Mean   :0.9917  
+ 3rd Qu.:1.0234   3rd Qu.:1.0032   3rd Qu.:1.0026   3rd Qu.:1.0244   3rd Qu.:1.0115  
+ Max.   :1.0698   Max.   :1.0333   Max.   :1.0691   Max.   :1.0894   Max.   :1.0774  
+[1] "HP filter with lambda = 1600"
+[1] "rmse1_var1/rmse1_ar; rmse2_var1/rmse2_ar;rmse3_var1/rmse3_ar; rmse4_var1/rmse4_ar; rmse14_var1/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.9164   Min.   :0.8843   Min.   :0.8266   Min.   :0.8585   Min.   :0.8125  
+ 1st Qu.:0.9531   1st Qu.:0.9306   1st Qu.:0.8989   1st Qu.:0.9148   1st Qu.:0.8774  
+ Median :0.9829   Median :0.9574   Median :0.9481   Median :1.0003   Median :0.9516  
+ Mean   :0.9867   Mean   :0.9747   Mean   :0.9661   Mean   :1.0173   Mean   :0.9720  
+ 3rd Qu.:1.0094   3rd Qu.:1.0162   3rd Qu.:1.0300   3rd Qu.:1.0773   3rd Qu.:1.0629  
+ Max.   :1.0946   Max.   :1.1487   Max.   :1.2053   Max.   :1.3900   Max.   :1.2373  
+[1] "HP filter with lambda = 3,000"
+[1] "rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.9040   Min.   :0.8722   Min.   :0.8338   Min.   :0.8206   Min.   :0.7352  
+ 1st Qu.:0.9428   1st Qu.:0.9292   1st Qu.:0.9050   1st Qu.:0.9222   1st Qu.:0.8965  
+ Median :0.9693   Median :0.9688   Median :0.9653   Median :1.0141   Median :0.9718  
+ Mean   :0.9806   Mean   :0.9855   Mean   :0.9860   Mean   :1.0471   Mean   :0.9912  
+ 3rd Qu.:1.0159   3rd Qu.:1.0331   3rd Qu.:1.0335   3rd Qu.:1.1222   3rd Qu.:1.0494  
+ Max.   :1.1143   Max.   :1.2053   Max.   :1.2886   Max.   :1.4909   Max.   :1.3457  
+[1] "HP filter with lambda = 400,000"
+[1] "rmse1_var3/rmse1_ar; rmse2_var3/rmse2_ar;rmse3_var3/rmse3_ar; rmse4_var3/rmse4_ar; rmse14_var3/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.8764   Min.   :0.8688   Min.   :0.8125   Min.   :0.8251   Min.   :0.7545  
+ 1st Qu.:0.9800   1st Qu.:0.9795   1st Qu.:0.9668   1st Qu.:0.9763   1st Qu.:0.9589  
+ Median :1.0276   Median :1.0488   Median :1.0794   Median :1.1117   Median :1.1221  
+ Mean   :1.0043   Mean   :1.0354   Mean   :1.0694   Mean   :1.1091   Mean   :1.0825  
+ 3rd Qu.:1.0404   3rd Qu.:1.1012   3rd Qu.:1.1817   3rd Qu.:1.2248   3rd Qu.:1.2082  
+ Max.   :1.0722   Max.   :1.1626   Max.   :1.3215   Max.   :1.4816   Max.   :1.3916  
+[1] "Hamilton filter"
+[1] "rmse1_var4/rmse1_ar; rmse2_var4/rmse2_ar;rmse3_var4/rmse3_ar; rmse4_var4/rmse4_ar; rmse14_var4/rmse14_ar"
+       V1               V2               V3               V4              V5        
+ Min.   :0.9325   Min.   :0.9341   Min.   :0.9194   Min.   :0.931   Min.   :0.9053  
+ 1st Qu.:0.9642   1st Qu.:0.9913   1st Qu.:1.0161   1st Qu.:1.048   1st Qu.:1.0197  
+ Median :0.9973   Median :1.0440   Median :1.0902   Median :1.151   Median :1.1219  
+ Mean   :1.0011   Mean   :1.0494   Mean   :1.1031   Mean   :1.182   Mean   :1.1338  
+ 3rd Qu.:1.0351   3rd Qu.:1.1125   3rd Qu.:1.1924   3rd Qu.:1.313   3rd Qu.:1.2380  
+ Max.   :1.0884   Max.   :1.1937   Max.   :1.3677   Max.   :1.593   Max.   :1.4592  
+[1] "linear filter"
+[1] "rmse1_var5/rmse1_ar; rmse2_var5/rmse2_ar;rmse3_var5/rmse3_ar; rmse4_var5/rmse4_ar; rmse14_var5/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.8807   Min.   :0.8681   Min.   :0.8085   Min.   :0.8308   Min.   :0.7557  
+ 1st Qu.:0.9918   1st Qu.:0.9921   1st Qu.:0.9819   1st Qu.:0.9983   1st Qu.:0.9839  
+ Median :1.0352   Median :1.0561   Median :1.0785   Median :1.0907   Median :1.1060  
+ Mean   :1.0126   Mean   :1.0309   Mean   :1.0444   Mean   :1.0621   Mean   :1.0616  
+ 3rd Qu.:1.0496   3rd Qu.:1.0741   3rd Qu.:1.1008   3rd Qu.:1.1099   3rd Qu.:1.1455  
+ Max.   :1.0741   Max.   :1.1614   Max.   :1.2519   Max.   :1.3818   Max.   :1.3191  
+[1] "quad filter"
+[1] "rmse1_var6/rmse1_ar; rmse2_var6/rmse2_ar;rmse3_var6/rmse3_ar; rmse4_var6/rmse4_ar; rmse14_var6/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.8700   Min.   :0.8306   Min.   :0.7871   Min.   :0.7737   Min.   :0.6952  
+ 1st Qu.:0.9372   1st Qu.:0.9189   1st Qu.:0.8945   1st Qu.:0.8859   1st Qu.:0.8379  
+ Median :1.0069   Median :1.0272   Median :1.1102   Median :1.2771   Median :1.1208  
+ Mean   :1.0005   Mean   :1.0413   Mean   :1.0631   Mean   :1.1617   Mean   :1.0801  
+ 3rd Qu.:1.0613   3rd Qu.:1.1620   3rd Qu.:1.2121   3rd Qu.:1.3641   3rd Qu.:1.3095  
+ Max.   :1.1523   Max.   :1.2884   Max.   :1.3598   Max.   :1.6257   Max.   :1.4647  
+[1] "UC filter"
+[1] "rmse1_var8/rmse1_ar; rmse2_var8/rmse2_ar;rmse3_var8/rmse3_ar; rmse4_var8/rmse4_ar; rmse14_var8/rmse14_ar"
+       V1               V2               V3               V4               V5        
+ Min.   :0.9928   Min.   :0.9706   Min.   :0.8795   Min.   :0.8188   Min.   :0.8884  
+ 1st Qu.:1.0219   1st Qu.:0.9912   1st Qu.:0.9130   1st Qu.:0.8706   1st Qu.:0.9324  
+ Median :1.0434   Median :1.0076   Median :0.9644   Median :0.9436   Median :0.9725  
+ Mean   :1.0448   Mean   :1.0135   Mean   :0.9645   Mean   :0.9413   Mean   :0.9886  
+ 3rd Qu.:1.0644   3rd Qu.:1.0318   3rd Qu.:1.0032   3rd Qu.:0.9969   3rd Qu.:1.0477  
+ Max.   :1.1129   Max.   :1.0856   Max.   :1.0917   Max.   :1.1070   Max.   :1.1604  

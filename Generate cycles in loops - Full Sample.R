@@ -2,7 +2,7 @@
 ## 1. Load library ----
 rm(list=ls())
 
-country = 'FR'
+country = 'JP'
 
 library(mFilter)
 library(xts)
@@ -14,8 +14,8 @@ library(smooth) # MA forecast
 library(Mcomp)
 library(dplyr)
 ## BN decomposition filter
-library(devtools)
-devtools::install_github("KevinKotze/tsm")
+# library(devtools)
+# devtools::install_github("KevinKotze/tsm")
 library(tsm)
 
 ## 
@@ -35,12 +35,13 @@ source("HPfilters/OneSidedHPfilterfunc.R")
 
 
 # Window of sample data
+startdate_var_input='1988-10-01'
 startdate_var='1989-01-01'
 enddate ='2021-04-01'
-startdate_ts = c(1989,1)
-startdate_diff = c(1989,2) #sample date is pushed forward because of diff operator
-startdate_hamilton_xts = '1983-04-01'
-startdate_hamilton = c(1983,2) #hamilton filter (need extra 23 periods:  4 lags + 20 periods ahead forecast)
+startdate_ts = c(1988,4)
+startdate_diff = c(1989,1) #sample date is pushed forward because of diff operator
+startdate_hamilton_xts = '1983-01-01'
+startdate_hamilton = c(1983,1) #hamilton filter (need extra 23 periods:  4 lags + 20 periods ahead forecast)
 
 # Importing file
 filepath1 = ('../HPCredit/Data Collection/1.Latest/Paper2')
@@ -48,16 +49,6 @@ filepath2 = sprintf('/credit_%s.txt',country)
 filepath = paste(filepath1, filepath2, sep='')
 
 df <- read.table(filepath, header=TRUE, sep=',')
-df1 <- df %>%
-  filter(grepl("^(A)", cg_dtype))
-df1 = subset(df1, date >= as.Date(startdate_var)) # Limit series data to after 1990
-df1 = subset(df1, date <= as.Date(enddate)) # Limit series data to before 2020
-varlist = c("date", "obs_value")
-df1 = df1[varlist]
-credit <- xts(df1[,-c(1)], order.by=as.Date(df1[,"date"], "%Y-%m-%d"), frequency=4)
-credit0 <- ts_ts(credit)
-credit1 <- credit0
-
 # Prep data for hamilton filter (need extra 23 periods:  4 lags + 20 periods ahead forecast)
 df1 <- df %>%
   filter(grepl("^(A)", cg_dtype))
@@ -66,23 +57,28 @@ df1 = subset(df1, date <= as.Date(enddate)) # Limit series data to before 2020
 varlist = c("date", "obs_value")
 df1 = df1[varlist]
 credit_hamilton <- xts(df1[,-c(1)], order.by=as.Date(df1[,"date"], "%Y-%m-%d"))
+
+#Log transforming
+# credit_hamilton = 100*log(credit_hamilton)
 credit_hamilton1 <- ts_ts(credit_hamilton)
 
-dy = diff(credit0)
-dy.true=dy
 
-credit0=window(credit0, start=startdate_diff)
+# Prep data for dy (diff(credit))
+credit0=window(credit_hamilton1, start=startdate_var_input)
+dy = diff(credit_hamilton1)
+dy = window(dy, start=startdate_diff)
+dy.true=dy
 
 ## HP filter series
 
-df1 <- df %>%
-  filter(grepl("^(A)", cg_dtype))
-varlist = c("date", "obs_value")
-df1 = df1[varlist]
-# df1 = subset(df1, date >= as.Date(startdate_var))
-df1 = subset(df1, date <= as.Date(enddate))
-credit <- xts(df1[,-c(1)], order.by=as.Date(df1[,"date"], "%Y-%m-%d"))
-credit1 <- ts_ts(credit)
+# df1 <- df %>%
+#   filter(grepl("^(A)", cg_dtype))
+# varlist = c("date", "obs_value")
+# df1 = df1[varlist]
+# df1 = subset(df1, date >= as.Date(startdate_hamilton_xts))
+# df1 = subset(df1, date <= as.Date(enddate))
+# credit <- xts(df1[,-c(1)], order.by=as.Date(df1[,"date"], "%Y-%m-%d"))
+credit1 <- credit_hamilton1
 c.hp=filterHP(credit1)[,"cycle"]
 c.hp3k=filterHP(credit1, lambda=3000)[,"cycle"]
 c.hp400k=filterHP(credit1, lambda=400000)[,"cycle"]
@@ -105,11 +101,10 @@ t=length(dy) #Full Sample size
 df3 <- read.table(sprintf("../HPCredit/Regression/VAR_2/Output/OutputData/uc_yc_%s.txt",country), header=FALSE, sep=",")
 ## BK and CF filters both use symmetric sample of 12 periods
 df3=df3[,1:2] 
-c.uc = ts(df3[,2], start=startdate_ts, frequency=4)
+c.uc = ts(df3[,2], start=startdate_hamilton, frequency=4)
 c.uc1 = window(c.uc, start=startdate_diff)
 i=1
 #   
-
 
 c.hamilton2=matrix(0,t,1) #store of 1 sided cycle decomp
 c.linear2=matrix(0,t,1)
@@ -120,7 +115,7 @@ c.bn2=matrix(0,t,1)
 for(i in 1:t){
   
   
-  credit_hamilton = credit_hamilton1[(1):(i-1+24+1)]
+  credit_hamilton = credit_hamilton1[(1):(i-1+24)]
   credit_hamilton = ts(credit_hamilton, start = startdate_hamilton, frequency =4)
   credit_xts = ts_xts(credit_hamilton)
   
@@ -131,23 +126,22 @@ for(i in 1:t){
   
   
   c.hamilton4 <- yth_filter(credit_xts, h = 20, p = 4)$value.cycle # Hamilton filter
-  c.hamilton2[(1+i-1)]=c.hamilton4[i-1+24+1]
+  c.hamilton2[(1+i-1)]=c.hamilton4[i-1+24]
   
   # credit.bw <- bwfilter(credit1, drift=FALSE)  # Butterworth filter
   credit.linear <- tslm(credit_hamilton ~ trend) # Linear trend decomp
   c.linear <- credit_hamilton - fitted(credit.linear)
-  c.linear2[1+i-1]=c.linear[i-1+24+1]
+  c.linear2[1+i-1]=c.linear[i-1+24]
   
   credit.quad <- tslm(credit_hamilton ~ trend + I(trend^2)) # Quadratic trend decomp
   c.quad <- credit_hamilton - fitted(credit.quad)
-  c.quad2[1+i-1]=c.quad[i-1+24+1]
+  c.quad2[1+i-1]=c.quad[i-1+24]
   
   bn.decomp <- bnd(credit_hamilton, nlag = 2) # Beveridge-Nelson decomposition
   c.bn <- ts(bn.decomp[, 2], start = startdate_hamilton, frequency = 4) 
-  c.bn2[1+i-1]=c.bn[i-1+24+1]
+  c.bn2[1+i-1]=c.bn[i-1+24]
   
 } 
-startdate_ts = startdate_diff # assign differenced values to 1 period after sample startdate_var, 
 
 x=list(c.hp1,c.hp3k1,c.hp400k1,c.uc1,c.hamilton2, c.linear2 , c.quad2, c.bn2)
 # x<-lapply(x, function(x) x=x[1:(n.end+i-1)])
@@ -161,10 +155,16 @@ c.hamilton = x[5][[1]]
 c.linear = x[6][[1]]
 c.quad = x[7][[1]]
 c.bn = x[8][[1]]
+
+
+dy=window(dy, start=startdate_diff)
+dy.true=dy
+
+t=length(dy)
 ## Save data into csv file
 
 ## Load dy
-dy = dy.true
+startdate_ts = startdate_diff # assign differenced values to 1 period after sample startdate_var, 
 
 var_1=ts(cbind(dy,c.hp), start=startdate_ts, frequency =4)
 var_2=ts(cbind(dy,c.hp3k), start=startdate_ts, frequency =4)
@@ -175,6 +175,7 @@ var_5=ts(cbind(dy,c.linear), start=startdate_ts, frequency =4)
 var_6=ts(cbind(dy,c.quad), start=startdate_ts, frequency =4)
 var_7=ts(cbind(dy,c.bn), start=startdate_ts, frequency =4)
 var_8=ts(cbind(dy,c.uc), start=startdate_ts, frequency =4)
+
 
   i=1
 
@@ -429,16 +430,41 @@ for(i in 1:n){
 
   ## Calculate combined cycle
 
-  c.combined[i+n.end] = (c.hp[i+n.end-1]*w_bg1[i,1]+c.hp3k[i+n.end-1]*w_bg1[i,2]+c.hp400k[i+n.end-1]*w_bg1[i,3]
-                         +c.hamilton[i+n.end-1]*w_bg1[i,4]+c.linear[i+n.end-1]*w_bg1[i,5]+c.quad[i+n.end-1]*w_bg1[i,6]
-                   +c.bn[i+n.end-1]*w_bg1[i,7]+c.uc[i+n.end-1]*w_bg1[i,8])
-  ## Storage of cyclical components
-  c.df[i+n.end-1,] = c(c.hp[i+n.end-1],c.hp3k[i+n.end-1],c.hp400k[i+n.end-1],
-                       c.hamilton[i+n.end-1],c.linear[i+n.end-1],c.quad[i+n.end-1],
-                       c.bn[i+n.end-1],c.uc[i+n.end-1], c.combined[i+n.end-1])
-  c.weight[i+n.end-1,] = c(w_bg1[i,1],w_bg1[i,2],w_bg1[i,3],
-                          w_bg1[i,4],w_bg1[i,5],w_bg1[i,6],w_bg1[i,7],
-                          w_bg1[i,8])
+  c.combined[i+n.end] = (c.hp[i+n.end]*w_bg1[i,1]+c.hp3k[i+n.end]*w_bg1[i,2]+c.hp400k[i+n.end]*w_bg1[i,3]
+                         +c.hamilton[i+n.end]*w_bg1[i,4]+c.linear[i+n.end]*w_bg1[i,5]+c.quad[i+n.end]*w_bg1[i,6]
+                   +c.bn[i+n.end]*w_bg1[i,7]+c.uc[i+n.end]*w_bg1[i,8])
+ 
+  
+
+  
+  
+  
+   ## Storage of cyclical components
+  c.df[i+n.end-1,] = c(c.hp[i+n.end],c.hp3k[i+n.end],c.hp400k[i+n.end],
+                       c.hamilton[i+n.end],c.linear[i+n.end],c.quad[i+n.end],
+                       c.bn[i+n.end],c.uc[i+n.end], c.combined[i+n.end])
+ 
+  
+   c.weight[i+n.end-1,] = c(mean(w_bg1[i,1],w_bg2[i,1],w_bg3[i,1],w_bg4[i,1]),
+                            mean(w_bg1[i,2],w_bg2[i,2],w_bg3[i,2],w_bg4[i,2]),
+                            mean(w_bg1[i,3],w_bg2[i,3],w_bg3[i,3],w_bg4[i,3]),
+                            mean(w_bg1[i,4],w_bg2[i,4],w_bg3[i,4],w_bg4[i,4]),
+                            mean(w_bg1[i,5],w_bg2[i,5],w_bg3[i,5],w_bg4[i,5]),
+                            mean(w_bg1[i,6],w_bg2[i,6],w_bg3[i,6],w_bg4[i,6]),
+                            mean(w_bg1[i,7],w_bg2[i,7],w_bg3[i,7],w_bg4[i,7]),
+                            mean(w_bg1[i,8],w_bg2[i,8],w_bg3[i,8],w_bg4[i,8]))
+  
+  
+   c.combined[i+n.end] =  (c.hp[i+n.end]*c.weight[i+n.end-1,1]
+                           +c.hp3k[i+n.end]*c.weight[i+n.end-1,2]
+                           +c.hp400k[i+n.end]*c.weight[i+n.end-1,3]
+                           +c.hamilton[i+n.end]*c.weight[i+n.end-1,4]
+                           +c.linear[i+n.end]*c.weight[i+n.end-1,5]
+                           +c.quad[i+n.end]*c.weight[i+n.end-1,6]
+                           +c.bn[i+n.end]*c.weight[i+n.end-1,7]
+                           +c.uc[i+n.end]*c.weight[i+n.end-1,8])
+   
+   
   # c.hp1[i+n.end-1] = c.hp[i+n.end-1]
   # c.hp3k1[i+n.end-1] = c.hp3k[i+n.end-1]
   # c.hp400k1[i+n.end-1] = c.hp400k[i+n.end-1]
@@ -672,56 +698,56 @@ rmse14_var8=sqrt(mean(e14_var8^2))
 
 country
 
-filepath = sprintf('RMSE_ratio_%s.txt',country)
-logfile = file(filepath)
-sink(logfile, append = TRUE, type="output")
-
-
-'Bates-Granger weight combination forecast'
-'rmse1_varbg/rmse1_ar; rmse2_varbg/rmse2_ar;rmse3_varbg/rmse3_ar; rmse4_varbg/rmse4_ar;rmse14_varbg/rmse14_ar'
-rmse1_varbg/rmse1_ar; rmse2_varbg/rmse2_ar;rmse3_varbg/rmse3_ar; rmse4_varbg/rmse4_ar;rmse14_varbg/rmse14_ar
-
-
-'Average Combination RMSE ratio'
-'rmse1_varcomb/rmse1_ar; rmse2_varcomb/rmse2_ar;rmse3_varcomb/rmse3_ar; rmse4_varcomb/rmse4_ar; rmse14_varcomb/rmse14_ar'
-rmse1_varcomb/rmse1_ar; rmse2_varcomb/rmse2_ar;rmse3_varcomb/rmse3_ar; rmse4_varcomb/rmse4_ar; rmse14_varcomb/rmse14_ar
-
-'BN filter'
-'rmse1_var7/rmse1_ar; rmse2_var7/rmse2_ar;rmse3_var7/rmse3_ar; rmse4_var7/rmse4_ar; rmse14_var7/rmse14_ar'
-rmse1_var7/rmse1_ar; rmse2_var7/rmse2_ar;rmse3_var7/rmse3_ar; rmse4_var7/rmse4_ar; rmse14_var7/rmse14_ar
-
-'HP filter with lambda = 1600'
-'rmse1_var1/rmse1_ar; rmse2_var1/rmse2_ar;rmse3_var1/rmse3_ar; rmse4_var1/rmse4_ar; rmse14_var1/rmse14_ar'
-rmse1_var1/rmse1_ar; rmse2_var1/rmse2_ar;rmse3_var1/rmse3_ar; rmse4_var1/rmse4_ar; rmse14_var1/rmse14_ar
-
-'HP filter with lambda = 3,000'
-'rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar'
-rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar
-
-
-'HP filter with lambda = 400,000'
-'rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar'
-rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar
-
-'Hamilton filter'
-'rmse1_var4/rmse1_ar; rmse2_var4/rmse2_ar;rmse3_var4/rmse3_ar; rmse4_var4/rmse4_ar; rmse14_var4/rmse14_ar'
-rmse1_var4/rmse1_ar; rmse2_var4/rmse2_ar;rmse3_var4/rmse3_ar; rmse4_var4/rmse4_ar; rmse14_var4/rmse14_ar
-
-'linear filter'
-'rmse1_var5/rmse1_ar; rmse2_var5/rmse2_ar;rmse3_var5/rmse3_ar; rmse4_var5/rmse4_ar; rmse14_var5/rmse14_ar'
-rmse1_var5/rmse1_ar; rmse2_var5/rmse2_ar;rmse3_var5/rmse3_ar; rmse4_var5/rmse4_ar; rmse14_var5/rmse14_ar
-
-'quad filter'
-'rmse1_var6/rmse1_ar; rmse2_var6/rmse2_ar;rmse3_var6/rmse3_ar; rmse4_var6/rmse4_ar; rmse14_var6/rmse14_ar'
-rmse1_var6/rmse1_ar; rmse2_var6/rmse2_ar;rmse3_var6/rmse3_ar; rmse4_var6/rmse4_ar; rmse14_var6/rmse14_ar
-
-'UC filter'
-'rmse1_var8/rmse1_ar; rmse2_var8/rmse2_ar;rmse3_var8/rmse3_ar; rmse4_var8/rmse4_ar; rmse14_var8/rmse14_ar'
-rmse1_var8/rmse1_ar; rmse2_var8/rmse2_ar;rmse3_var8/rmse3_ar; rmse4_var8/rmse4_ar; rmse14_var8/rmse14_ar
-
-
-closeAllConnections() # Close connection to log file
+# filepath = sprintf('RMSE_ratio_%s.txt',country)
+# logfile = file(filepath)
+# sink(logfile, append = TRUE, type="output")
 # 
+# 
+# 'Bates-Granger weight combination forecast'
+# 'rmse1_varbg/rmse1_ar; rmse2_varbg/rmse2_ar;rmse3_varbg/rmse3_ar; rmse4_varbg/rmse4_ar;rmse14_varbg/rmse14_ar'
+# rmse1_varbg/rmse1_ar; rmse2_varbg/rmse2_ar;rmse3_varbg/rmse3_ar; rmse4_varbg/rmse4_ar;rmse14_varbg/rmse14_ar
+# 
+# 
+# 'Average Combination RMSE ratio'
+# 'rmse1_varcomb/rmse1_ar; rmse2_varcomb/rmse2_ar;rmse3_varcomb/rmse3_ar; rmse4_varcomb/rmse4_ar; rmse14_varcomb/rmse14_ar'
+# rmse1_varcomb/rmse1_ar; rmse2_varcomb/rmse2_ar;rmse3_varcomb/rmse3_ar; rmse4_varcomb/rmse4_ar; rmse14_varcomb/rmse14_ar
+# 
+# 'BN filter'
+# 'rmse1_var7/rmse1_ar; rmse2_var7/rmse2_ar;rmse3_var7/rmse3_ar; rmse4_var7/rmse4_ar; rmse14_var7/rmse14_ar'
+# rmse1_var7/rmse1_ar; rmse2_var7/rmse2_ar;rmse3_var7/rmse3_ar; rmse4_var7/rmse4_ar; rmse14_var7/rmse14_ar
+# 
+# 'HP filter with lambda = 1600'
+# 'rmse1_var1/rmse1_ar; rmse2_var1/rmse2_ar;rmse3_var1/rmse3_ar; rmse4_var1/rmse4_ar; rmse14_var1/rmse14_ar'
+# rmse1_var1/rmse1_ar; rmse2_var1/rmse2_ar;rmse3_var1/rmse3_ar; rmse4_var1/rmse4_ar; rmse14_var1/rmse14_ar
+# 
+# 'HP filter with lambda = 3,000'
+# 'rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar'
+# rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar
+# 
+# 
+# 'HP filter with lambda = 400,000'
+# 'rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar'
+# rmse1_var3/rmse1_ar; rmse2_var3/rmse2_ar;rmse3_var3/rmse3_ar; rmse4_var3/rmse4_ar; rmse14_var3/rmse14_ar
+# 
+# 'Hamilton filter'
+# 'rmse1_var4/rmse1_ar; rmse2_var4/rmse2_ar;rmse3_var4/rmse3_ar; rmse4_var4/rmse4_ar; rmse14_var4/rmse14_ar'
+# rmse1_var4/rmse1_ar; rmse2_var4/rmse2_ar;rmse3_var4/rmse3_ar; rmse4_var4/rmse4_ar; rmse14_var4/rmse14_ar
+# 
+# 'linear filter'
+# 'rmse1_var5/rmse1_ar; rmse2_var5/rmse2_ar;rmse3_var5/rmse3_ar; rmse4_var5/rmse4_ar; rmse14_var5/rmse14_ar'
+# rmse1_var5/rmse1_ar; rmse2_var5/rmse2_ar;rmse3_var5/rmse3_ar; rmse4_var5/rmse4_ar; rmse14_var5/rmse14_ar
+# 
+# 'quad filter'
+# 'rmse1_var6/rmse1_ar; rmse2_var6/rmse2_ar;rmse3_var6/rmse3_ar; rmse4_var6/rmse4_ar; rmse14_var6/rmse14_ar'
+# rmse1_var6/rmse1_ar; rmse2_var6/rmse2_ar;rmse3_var6/rmse3_ar; rmse4_var6/rmse4_ar; rmse14_var6/rmse14_ar
+# 
+# 'UC filter'
+# 'rmse1_var8/rmse1_ar; rmse2_var8/rmse2_ar;rmse3_var8/rmse3_ar; rmse4_var8/rmse4_ar; rmse14_var8/rmse14_ar'
+# rmse1_var8/rmse1_ar; rmse2_var8/rmse2_ar;rmse3_var8/rmse3_ar; rmse4_var8/rmse4_ar; rmse14_var8/rmse14_ar
+# 
+# 
+# closeAllConnections() # Close connection to log file
+# # 
 
 name1 <- c("HP", "HP3k", "HP400k", "Hamilton","linear","quad","BN","UC","combined cycle")
 c.df=as.data.frame(c.df)
@@ -768,10 +794,10 @@ plot(c.hp,main="Estimated Cyclical Component",
      ylim=c(-15,15),col=1,ylab="")
 lines(c.hp3k,col=2)
 lines(c.hp400k,col=3)
-lines(c.hamilton1s,col=4)
-lines(c.linear1s, col=5)
-lines(c.quad1s, col=6)
-lines(c.bn1s, col=7)
+lines(c.hamilton,col=4)
+lines(c.linear, col=5)
+lines(c.quad, col=6)
+lines(c.bn, col=7)
 lines(c.uc,col=2, lty =2)
 lines(c.combined, col=3, lty=6)
 lines(dy.true, col=1, lty=5)
@@ -787,10 +813,22 @@ c.linearw = ts(c.weight$linear, start=startdate_diff, freq=4)
 c.quadw = ts(c.weight$quad, start=startdate_diff, freq=4)
 c.bnw = ts(c.weight$BN, start=startdate_diff, freq=4)
 c.ucw = ts(c.weight$UC, start=startdate_diff, freq=4)
+dev.off()
+
+
+
+pdfpath = sprintf('1-4steps_average_weight_%s.pdf', country)
+
+pdf(file = pdfpath,   # The directory you want to save the file in
+    width = 7, # The width of the plot in inches
+    height = 5.5) # The height of the plot in inches
 
 c.weight = na.omit(c.weight)
-plot(c.hpw,main="Estimated Bates Granger weights of Cyclical Component",
-     ylim=c(0,0.4),col=1,ylab="")
+maint = sprintf('%s Estimated Bates Granger weights of Cyclical Component', country)
+
+plot(c.hpw,main=maint,
+          sub="1-4 steps average",
+     ylim=c(0.05,0.2),col=1,ylab="")
 lines(c.hp3kw,col=2)
 lines(c.hp400kw,col=3)
 lines(c.hamiltonw,col=4)
@@ -804,6 +842,48 @@ legend("topleft",legend=c("HP", "HP3k", "HP400k", "Hamilton","linear","quad","BN
 dev.off()
 
 filepath = sprintf('GeneratedCycles_%s.csv',country)
-write.table(c.df, filepath, sep=',' )
+c.df$HP<-c.hp
+c.df$HP3k<-c.hp3k
+c.df$HP400k<-c.hp400k
+c.df$Hamilton<-c.hamilton
+c.df$linear<-c.linear
+c.df$quad<-c.quad
+c.df$BN<-c.bn
+c.df$UC<-c.uc
+write.table(c.df, filepath, sep=',' , row.names = FALSE)
 
 write.table(c.weight, "GeneratedWeights.csv", sep=',' )
+
+#write table append
+
+df_rmse1=as.data.frame(matrix(0,10,7))
+names(df_rmse1)=c("Country","filter","1step","2steps","3steps","4steps","avg1-4steps")
+df_rmse1[,1]=country
+
+df_rmse1[1,2]="HP"
+df_rmse1[1,3:7]=c(rmse1_var1/rmse1_ar, rmse2_var1/rmse2_ar,rmse3_var1/rmse3_ar, rmse4_var1/rmse4_ar, rmse14_var1/rmse14_ar)
+df_rmse1[2,2]="HP3k"
+df_rmse1[2,3:7]=c(rmse1_var2/rmse1_ar, rmse2_var2/rmse2_ar,rmse3_var2/rmse3_ar, rmse4_var2/rmse4_ar, rmse14_var2/rmse14_ar)
+df_rmse1[3,2]="HP400k"
+df_rmse1[3,3:7]=c(rmse1_var3/rmse1_ar, rmse2_var3/rmse2_ar,rmse3_var3/rmse3_ar, rmse4_var3/rmse4_ar, rmse14_var3/rmse14_ar)
+df_rmse1[4,2]="Hamilton"
+df_rmse1[4,3:7]=c(rmse1_var4/rmse1_ar, rmse2_var4/rmse2_ar,rmse3_var4/rmse3_ar, rmse4_var4/rmse4_ar, rmse14_var4/rmse14_ar)
+df_rmse1[5,2]="Linear"
+df_rmse1[5,3:7]=c(rmse1_var5/rmse1_ar, rmse2_var5/rmse2_ar,rmse3_var5/rmse3_ar, rmse4_var5/rmse4_ar, rmse14_var5/rmse14_ar)
+df_rmse1[6,2]="Quad"
+df_rmse1[6,3:7]=c(rmse1_var6/rmse1_ar, rmse2_var6/rmse2_ar,rmse3_var6/rmse3_ar, rmse4_var6/rmse4_ar, rmse14_var6/rmse14_ar)
+df_rmse1[7,2]="BN"
+df_rmse1[7,3:7]=c(rmse1_var7/rmse1_ar, rmse2_var7/rmse2_ar,rmse3_var7/rmse3_ar, rmse4_var7/rmse4_ar, rmse14_var7/rmse14_ar)
+df_rmse1[8,2]="UC"
+df_rmse1[8,3:7]=c(rmse1_var8/rmse1_ar, rmse2_var8/rmse2_ar,rmse3_var8/rmse3_ar, rmse4_var8/rmse4_ar, rmse14_var8/rmse14_ar)
+df_rmse1[9,2]="avgcomb"
+df_rmse1[9,3:7]=c(rmse1_varcomb/rmse1_ar, rmse2_varcomb/rmse2_ar,rmse3_varcomb/rmse3_ar, rmse4_varcomb/rmse4_ar, rmse14_varcomb/rmse14_ar)
+df_rmse1[10,2]="Bates-Granger"
+df_rmse1[10,3:7]=c(rmse1_varbg/rmse1_ar, rmse2_varbg/rmse2_ar,rmse3_varbg/rmse3_ar, rmse4_varbg/rmse4_ar,rmse14_varbg/rmse14_ar)
+
+#write.table append
+if (country=="US"){
+write.table(df_rmse1, "RMSE_fullsample.csv", sep=',', row.names=FALSE)
+}else {
+  write.table(df_rmse1, "RMSE_fullsample.csv", sep=',', append=TRUE, row.names=FALSE, col.names = FALSE)
+}

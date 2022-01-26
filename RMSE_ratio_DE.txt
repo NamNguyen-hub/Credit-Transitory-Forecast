@@ -35,11 +35,11 @@
 [1] 1.006537
 [1] "HP filter with lambda = 400,000"
 [1] "rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar"
-[1] 0.9991048
-[1] 0.9952168
-[1] 1.002936
-[1] 1.020356
-[1] 1.006537
+[1] 0.9993856
+[1] 0.9846144
+[1] 0.9948255
+[1] 1.00514
+[1] 0.9906668
 [1] "Hamilton filter"
 [1] "rmse1_var4/rmse1_ar; rmse2_var4/rmse2_ar;rmse3_var4/rmse3_ar; rmse4_var4/rmse4_ar; rmse14_var4/rmse14_ar"
 [1] 0.95697

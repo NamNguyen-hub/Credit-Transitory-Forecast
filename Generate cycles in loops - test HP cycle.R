@@ -2,7 +2,7 @@
 ## 1. Load library ----
 rm(list=ls())
 
-country = 'GB'
+country = 'US'
 library(dplyr)
 library(mFilter)
 library(xts)

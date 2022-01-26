@@ -12,10 +12,10 @@ library(neverhpfilter)  #Hamilton filter
 
 library(smooth) # MA forecast
 library(Mcomp)
-
+library(dplyr)
 ## BN decomposition filter
-library(devtools)
-devtools::install_github("KevinKotze/tsm")
+# library(devtools)
+# devtools::install_github("KevinKotze/tsm")
 library(tsm)
 
 ## 
@@ -35,12 +35,13 @@ source("HPfilters/OneSidedHPfilterfunc.R")
 
 
 # Window of sample data
+startdate_var_input='1988-10-01'
 startdate_var='1989-01-01'
 enddate ='2021-04-01'
-startdate_ts = c(1989,1)
-startdate_diff = c(1989,2) #sample date is pushed forward because of diff operator
-startdate_hamilton_xts = '1983-04-01'
-startdate_hamilton = c(1983,2) #hamilton filter (need extra 23 periods:  4 lags + 20 periods ahead forecast)
+startdate_ts = c(1988,4)
+startdate_diff = c(1989,1) #sample date is pushed forward because of diff operator
+startdate_hamilton_xts = '1983-01-01'
+startdate_hamilton = c(1983,1) #hamilton filter (need extra 23 periods:  4 lags + 20 periods ahead forecast)
 
 # Importing file
 filepath1 = ('../HPCredit/Data Collection/1.Latest/Paper2')
@@ -48,16 +49,6 @@ filepath2 = sprintf('/credit_%s.txt',country)
 filepath = paste(filepath1, filepath2, sep='')
 
 df <- read.table(filepath, header=TRUE, sep=',')
-df1 <- df %>%
-  filter(grepl("^(A)", cg_dtype))
-df1 = subset(df1, date >= as.Date(startdate_var)) # Limit series data to after 1990
-df1 = subset(df1, date <= as.Date(enddate)) # Limit series data to before 2020
-varlist = c("date", "obs_value")
-df1 = df1[varlist]
-credit <- xts(df1[,-c(1)], order.by=as.Date(df1[,"date"], "%Y-%m-%d"), frequency=4)
-credit0 <- ts_ts(credit)
-credit1 <- credit0
-
 # Prep data for hamilton filter (need extra 23 periods:  4 lags + 20 periods ahead forecast)
 df1 <- df %>%
   filter(grepl("^(A)", cg_dtype))
@@ -66,23 +57,28 @@ df1 = subset(df1, date <= as.Date(enddate)) # Limit series data to before 2020
 varlist = c("date", "obs_value")
 df1 = df1[varlist]
 credit_hamilton <- xts(df1[,-c(1)], order.by=as.Date(df1[,"date"], "%Y-%m-%d"))
+
+#Log transforming
+credit_hamilton = 100*log(credit_hamilton)
 credit_hamilton1 <- ts_ts(credit_hamilton)
 
-dy = diff(credit0)
-dy.true=dy
 
-credit0=window(credit0, start=startdate_diff)
+# Prep data for dy (diff(credit))
+credit0=window(credit_hamilton1, start=startdate_var_input)
+dy = diff(credit_hamilton1)
+dy = window(dy, start=startdate_diff)
+dy.true=dy
 
 ## HP filter series
 
-df1 <- df %>%
-  filter(grepl("^(A)", cg_dtype))
-varlist = c("date", "obs_value")
-df1 = df1[varlist]
-# df1 = subset(df1, date >= as.Date(startdate_var))
-df1 = subset(df1, date <= as.Date(enddate))
-credit <- xts(df1[,-c(1)], order.by=as.Date(df1[,"date"], "%Y-%m-%d"))
-credit1 <- ts_ts(credit)
+# df1 <- df %>%
+#   filter(grepl("^(A)", cg_dtype))
+# varlist = c("date", "obs_value")
+# df1 = df1[varlist]
+# df1 = subset(df1, date >= as.Date(startdate_hamilton_xts))
+# df1 = subset(df1, date <= as.Date(enddate))
+# credit <- xts(df1[,-c(1)], order.by=as.Date(df1[,"date"], "%Y-%m-%d"))
+credit1 <- credit_hamilton1
 c.hp=filterHP(credit1)[,"cycle"]
 c.hp3k=filterHP(credit1, lambda=3000)[,"cycle"]
 c.hp400k=filterHP(credit1, lambda=400000)[,"cycle"]
@@ -97,87 +93,88 @@ c.hp400k1=x[3][[1]]
 #### dy = Credit to household first differenced
 #### cy = Credit to household cyclical component decomposed using different methods
 
-  t=length(dy) #Full Sample size
-  
+t=length(dy) #Full Sample size
 
+# to account for first difference of dependent variable diff(credit)
 ## UC components
-  ## Import UC cycle components
-  df3 <- read.table(sprintf("../HPCredit/Regression/VAR_2/Output/OutputData/uc_yc_%s.txt",country), header=FALSE, sep=",")
-  ## BK and CF filters both use symmetric sample of 12 periods
-  df3=df3[,1:2] 
-  c.uc = ts(df3[,2], start=startdate_ts, frequency=4)
-  c.uc1 = window(c.uc, start=startdate_diff)
-  i=1
+## Import UC cycle components
+df3 <- read.table(sprintf("../HPCredit/Regression/VAR_2/Output/OutputData/uc_yc_%s.txt",country), header=FALSE, sep=",")
+## BK and CF filters both use symmetric sample of 12 periods
+df3=df3[,1:2] 
+c.uc = ts(df3[,2], start=startdate_hamilton, frequency=4)
+c.uc1 = window(c.uc, start=startdate_diff)
+i=1
 #   
-  
 
-    c.hamilton2=matrix(0,t,1) #store of 1 sided cycle decomp
-    c.linear2=matrix(0,t,1)
-    c.quad2=matrix(0,t,1)
-    c.bn2=matrix(0,t,1)
+c.hamilton2=matrix(0,t,1) #store of 1 sided cycle decomp
+c.linear2=matrix(0,t,1)
+c.quad2=matrix(0,t,1)
+c.bn2=matrix(0,t,1)
 
 
-    
 for(i in 1:t){
-
   
-  credit_hamilton = credit_hamilton1[(1):(i-1+25)]
+  
+  credit_hamilton = credit_hamilton1[(1):(i-1+24)]
   credit_hamilton = ts(credit_hamilton, start = startdate_hamilton, frequency =4)
   credit_xts = ts_xts(credit_hamilton)
   
-#### Cycle creation
+  #### Cycle creation
   # credit.hp <- mFilter(credit,filter="HP", type = "lambda", freq = 1600)  # Hodrick-Prescott filter
   # credit.hp3k <- mFilter(credit,filter="HP", type = "lambda", freq = 3000)  # Hodrick-Prescott filter
   # credit.hp400k <- mFilter(credit,filter="HP", type = "lambda", freq = 400000)  # Hodrick-Prescott filter
   
   
   c.hamilton4 <- yth_filter(credit_xts, h = 20, p = 4)$value.cycle # Hamilton filter
-  c.hamilton2[(1+i-1)]=c.hamilton4[i-1+25]
-
+  c.hamilton2[(1+i-1)]=c.hamilton4[i-1+24]
+  
   # credit.bw <- bwfilter(credit1, drift=FALSE)  # Butterworth filter
   credit.linear <- tslm(credit_hamilton ~ trend) # Linear trend decomp
   c.linear <- credit_hamilton - fitted(credit.linear)
-  c.linear2[1+i-1]=c.linear[i-1+25]
-
+  c.linear2[1+i-1]=c.linear[i-1+24]
+  
   credit.quad <- tslm(credit_hamilton ~ trend + I(trend^2)) # Quadratic trend decomp
   c.quad <- credit_hamilton - fitted(credit.quad)
-  c.quad2[1+i-1]=c.quad[i-1+25]
+  c.quad2[1+i-1]=c.quad[i-1+24]
   
   bn.decomp <- bnd(credit_hamilton, nlag = 2) # Beveridge-Nelson decomposition
   c.bn <- ts(bn.decomp[, 2], start = startdate_hamilton, frequency = 4) 
-  c.bn2[1+i-1]=c.bn[i-1+25]
+  c.bn2[1+i-1]=c.bn[i-1+24]
   
 } 
-    startdate_ts = startdate_diff # assign differenced values to 1 period after sample startdate_var, 
-    # to account for first difference of dependent variable diff(credit)
-    
-    x=list(c.hp1,c.hp3k1,c.hp400k1,c.uc1,c.hamilton2, c.linear2 , c.quad2, c.bn2)
-    # x<-lapply(x, function(x) x=x[1:(n.end+i-1)])
-    x<-lapply(x, ts, start=startdate_ts, frequency=4)
-    
-    c.hp=x[1][[1]]
-    c.hp3k=x[2][[1]]
-    c.hp400k=x[3][[1]]
-    c.uc=x[4][[1]]
-    c.hamilton = x[5][[1]]
-    c.linear = x[6][[1]]
-    c.quad = x[7][[1]]
-    c.bn = x[8][[1]]
+
+x=list(c.hp1,c.hp3k1,c.hp400k1,c.uc1,c.hamilton2, c.linear2 , c.quad2, c.bn2)
+# x<-lapply(x, function(x) x=x[1:(n.end+i-1)])
+x<-lapply(x, ts, start=startdate_diff, frequency=4)
+
+c.hp=x[1][[1]]
+c.hp3k=x[2][[1]]
+c.hp400k=x[3][[1]]
+c.uc=x[4][[1]]
+c.hamilton = x[5][[1]]
+c.linear = x[6][[1]]
+c.quad = x[7][[1]]
+c.bn = x[8][[1]]
+
+
+dy=window(dy, start=startdate_diff)
+dy.true=dy
+
+t=length(dy)
 ## Save data into csv file
-    
-    ## Load dy
-    dy = dy.true
-    
-    var_1=ts(cbind(dy,c.hp), start=startdate_ts, frequency =4)
-    var_2=ts(cbind(dy,c.hp3k), start=startdate_ts, frequency =4)
-    var_3=ts(cbind(dy,c.hp400k), start=startdate_ts, frequency =4)
-    var_4=ts(cbind(dy,c.hamilton), start=startdate_ts, frequency =4)
-    # var_5=ts(cbind(dy,c.bw), start=startdate_ts, frequency =4)
-    var_5=ts(cbind(dy,c.linear), start=startdate_ts, frequency =4)
-    var_6=ts(cbind(dy,c.quad), start=startdate_ts, frequency =4)
-    var_7=ts(cbind(dy,c.bn), start=startdate_ts, frequency =4)
-    var_8=ts(cbind(dy,c.uc), start=startdate_ts, frequency =4)
-    
+
+## Load dy
+startdate_ts = startdate_diff # assign differenced values to 1 period after sample startdate_var, 
+
+var_1=ts(cbind(dy,c.hp), start=startdate_ts, frequency =4)
+var_2=ts(cbind(dy,c.hp3k), start=startdate_ts, frequency =4)
+var_3=ts(cbind(dy,c.hp400k), start=startdate_ts, frequency =4)
+var_4=ts(cbind(dy,c.hamilton), start=startdate_ts, frequency =4)
+# var_5=ts(cbind(dy,c.bw), start=startdate_ts, frequency =4)
+var_5=ts(cbind(dy,c.linear), start=startdate_ts, frequency =4)
+var_6=ts(cbind(dy,c.quad), start=startdate_ts, frequency =4)
+var_7=ts(cbind(dy,c.bn), start=startdate_ts, frequency =4)
+var_8=ts(cbind(dy,c.uc), start=startdate_ts, frequency =4)
 
 ## Start for J loop    
 
@@ -199,7 +196,7 @@ lrmse_var8=matrix(0,k,5)
 
 
 
-for(j in 1:(t-4-n-n.end)){
+for(j in 1:k){
 
 # set matrix for storage
 pred_var1=matrix(0,n,4)
@@ -220,9 +217,7 @@ w_bg3=matrix(0,n,8)
 w_bg4=matrix(0,n,8)
 DMW=matrix(0,n,1)
 
-dy.trueloop = dy.true[(n.end+j):(n.end+j+n+4-1)]
-
-
+dy.trueloop = dy.true[(n.end+j):(n.end+j+n+4)]
 
 
 for(i in 1:n){
@@ -840,30 +835,30 @@ sink(logfile, append = TRUE, type="output")
     par(mfrow=c(1,1),mar=c(3,3,2,1),cex=.8)
 
     x<-list(lrmse_var1, lrmse_var2, lrmse_var3, lrmse_var4, lrmse_var5, lrmse_var6, lrmse_var7, lrmse_var8, lrmse_varbg, lrmse_varcomb)
-    x<-lapply(x, ts, start=c(2004,2), frequency=4)
-    lrmse_var1 = x[1][[1]][,5]
-    lrmse_var2 = x[2][[1]][,5]
-    lrmse_var3 = x[3][[1]][,5]
-    lrmse_var4 = x[4][[1]][,5]
-    lrmse_var5 = x[5][[1]][,5]
-    lrmse_var6 = x[6][[1]][,5]
-    lrmse_var7 = x[7][[1]][,5]
-    lrmse_var8 = x[8][[1]][,5]
-    lrmse_varbg = x[9][[1]][,5]
-    lrmse_varcomb = x[10][[1]][,5]
+    x<-lapply(x, ts, start=c(2004,1), frequency=4)
+    lrmse_var15 = x[1][[1]][,5]
+    lrmse_var25 = x[2][[1]][,5]
+    lrmse_var35 = x[3][[1]][,5]
+    lrmse_var45 = x[4][[1]][,5]
+    lrmse_var55 = x[5][[1]][,5]
+    lrmse_var65 = x[6][[1]][,5]
+    lrmse_var75 = x[7][[1]][,5]
+    lrmse_var85 = x[8][[1]][,5]
+    lrmse_varbg5 = x[9][[1]][,5]
+    lrmse_varcomb5 = x[10][[1]][,5]
     
     
     maint = sprintf("%s 10 years rolling average RMSE ratios  1-4periods forecast average", country)
-    plot(lrmse_varbg,main=maint, col=1, ylab="", ylim=c(0.6,2), lty=1)
-    lines(lrmse_varcomb,col=2)
-    lines(lrmse_var3, col=3)
-    lines(lrmse_var7,col=4)
-    lines(lrmse_var1,col=5)
-    lines(lrmse_var2,col=6)
-    lines(lrmse_var4,col=7)
-    lines(lrmse_var5,col=2, lty=2)
-    lines(lrmse_var6,col=3, lty=2)
-    lines(lrmse_var8,col=4, lty=2)
+    plot(lrmse_varbg5,main=maint, col=1, ylab="", ylim=c(0.6,2), lty=1)
+    lines(lrmse_varcomb5,col=2)
+    lines(lrmse_var35, col=3)
+    lines(lrmse_var75,col=4)
+    lines(lrmse_var15,col=5)
+    lines(lrmse_var25,col=6)
+    lines(lrmse_var45,col=7)
+    lines(lrmse_var55,col=2, lty=2)
+    lines(lrmse_var65,col=3, lty=2)
+    lines(lrmse_var85,col=4, lty=2)
     
     legend("topleft",legend=c("bates_granger", "average combination", "BIS credit gap","Beveridge-Nelson","HP filter", "HP filter lambda 3000k", "Hamilton", "Linear", "Quadratic", "UC"),
            col=c(1:7,2:4),lty=c(rep(1,7),rep(2,3)),ncol=2)
@@ -875,3 +870,38 @@ sink(logfile, append = TRUE, type="output")
     # write.table(c.df, filepath, sep=',' )
     # 
     # write.table(c.weight, "GeneratedWeights.csv", sep=',' )
+    
+    
+    
+    df_rmse1=as.data.frame(matrix(0,10,7))
+    names(df_rmse1)=c("Country","filter","1step_10YRSA","2steps_10YRSA","3steps_10YRSA","4steps_10YRSA","avg1-4steps_10YRSA")
+    df_rmse1[,1]=country
+    
+    df_rmse1[1,2]="HP"
+    df_rmse1[1,3:7]=c(mean(x[1][[1]][,1]), mean(x[1][[1]][,2]),mean(x[1][[1]][,3]), mean(x[1][[1]][,4]), mean(x[1][[1]][,5]))
+    df_rmse1[2,2]="HP3k"
+    df_rmse1[2,3:7]=c(mean(x[2][[1]][,1]), mean(x[2][[1]][,2]),mean(x[2][[1]][,3]), mean(x[2][[1]][,4]), mean(x[2][[1]][,5]))
+    df_rmse1[3,2]="HP400k"
+    df_rmse1[3,3:7]=c(mean(x[3][[1]][,1]), mean(x[3][[1]][,2]),mean(x[3][[1]][,3]), mean(x[3][[1]][,4]), mean(x[3][[1]][,5]))
+    df_rmse1[4,2]="Hamilton"
+    df_rmse1[4,3:7]=c(mean(x[4][[1]][,1]), mean(x[4][[1]][,2]),mean(x[4][[1]][,3]), mean(x[4][[1]][,4]), mean(x[4][[1]][,5]))
+    df_rmse1[5,2]="Linear"
+    df_rmse1[5,3:7]=c(mean(x[5][[1]][,1]), mean(x[5][[1]][,2]),mean(x[5][[1]][,3]), mean(x[5][[1]][,4]), mean(x[5][[1]][,5]))
+    df_rmse1[6,2]="Quad"
+    df_rmse1[6,3:7]=c(mean(x[6][[1]][,1]), mean(x[6][[1]][,2]),mean(x[6][[1]][,3]), mean(x[6][[1]][,4]), mean(x[6][[1]][,5]))
+    df_rmse1[7,2]="BN"
+    df_rmse1[7,3:7]=c(mean(x[7][[1]][,1]), mean(x[7][[1]][,2]),mean(x[7][[1]][,3]), mean(x[7][[1]][,4]), mean(x[7][[1]][,5]))
+    df_rmse1[8,2]="UC"
+    df_rmse1[8,3:7]=c(mean(x[8][[1]][,1]), mean(x[8][[1]][,2]),mean(x[8][[1]][,3]), mean(x[8][[1]][,4]), mean(x[8][[1]][,5]))
+    df_rmse1[9,2]="avgcomb"
+    df_rmse1[9,3:7]=c(mean(x[10][[1]][,1]), mean(x[10][[1]][,2]),mean(x[10][[1]][,3]), mean(x[10][[1]][,4]), mean(x[10][[1]][,5]))
+    df_rmse1[10,2]="Bates-Granger"
+    df_rmse1[10,3:7]=c(mean(x[9][[1]][,1]), mean(x[9][[1]][,2]),mean(x[9][[1]][,3]), mean(x[9][[1]][,4]), mean(x[9][[1]][,5]))
+    
+    #write.table append
+    if (country=="US"){
+      write.table(df_rmse1, "RMSE_10yrsrolling.csv", sep=',', row.names=FALSE)
+    }else {
+      write.table(df_rmse1, "RMSE_10yrsrolling.csv", sep=',', append=TRUE, row.names=FALSE, col.names = FALSE)
+    }
+    

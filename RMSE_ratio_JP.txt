@@ -1,17 +1,17 @@
 [1] "Bates-Granger weight combination forecast"
 [1] "rmse1_varbg/rmse1_ar; rmse2_varbg/rmse2_ar;rmse3_varbg/rmse3_ar; rmse4_varbg/rmse4_ar;rmse14_varbg/rmse14_ar"
-[1] 0.9699931
-[1] 0.9566415
-[1] 0.9493604
-[1] 0.9541493
-[1] 0.9167419
+[1] 0.9699929
+[1] 0.9566419
+[1] 0.9493606
+[1] 0.9541502
+[1] 0.9167421
 [1] "Average Combination RMSE ratio"
 [1] "rmse1_varcomb/rmse1_ar; rmse2_varcomb/rmse2_ar;rmse3_varcomb/rmse3_ar; rmse4_varcomb/rmse4_ar; rmse14_varcomb/rmse14_ar"
-[1] 0.9736543
-[1] 0.9637454
-[1] 0.9611536
-[1] 0.9653995
-[1] 0.9309925
+[1] 0.9736535
+[1] 0.9637458
+[1] 0.9611539
+[1] 0.9654006
+[1] 0.9309928
 [1] "BN filter"
 [1] "rmse1_var7/rmse1_ar; rmse2_var7/rmse2_ar;rmse3_var7/rmse3_ar; rmse4_var7/rmse4_ar; rmse14_var7/rmse14_ar"
 [1] 1.01434
@@ -35,11 +35,11 @@
 [1] 1.013235
 [1] "HP filter with lambda = 400,000"
 [1] "rmse1_var2/rmse1_ar; rmse2_var2/rmse2_ar;rmse3_var2/rmse3_ar; rmse4_var2/rmse4_ar; rmse14_var2/rmse14_ar"
-[1] 1.007364
-[1] 1.006497
-[1] 1.005796
-[1] 1.005725
-[1] 1.013235
+[1] 0.9662081
+[1] 0.9345194
+[1] 0.9150961
+[1] 0.9185124
+[1] 0.8591739
 [1] "Hamilton filter"
 [1] "rmse1_var4/rmse1_ar; rmse2_var4/rmse2_ar;rmse3_var4/rmse3_ar; rmse4_var4/rmse4_ar; rmse14_var4/rmse14_ar"
 [1] 1.002569
@@ -63,8 +63,8 @@
 [1] 1.104741
 [1] "UC filter"
 [1] "rmse1_var8/rmse1_ar; rmse2_var8/rmse2_ar;rmse3_var8/rmse3_ar; rmse4_var8/rmse4_ar; rmse14_var8/rmse14_ar"
-[1] 0.9977077
-[1] 0.9842182
-[1] 0.9812575
-[1] 0.9850622
-[1] 0.9751447
+[1] 0.9976912
+[1] 0.9842174
+[1] 0.9812585
+[1] 0.9850708
+[1] 0.9751394
