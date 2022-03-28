@@ -1,0 +1,187 @@
+rm(list=ls())
+#----
+
+# Libraries
+library(dplyr)
+library(ggplot2)
+library(zoo)
+#library(remotes)
+#install_version("BIS", "0.2.1")
+#library(BIS)
+library(reshape2)
+library(rstudioapi)
+#library(utils)
+library(data.table)
+
+library(xts)
+library(tsbox)
+
+#1. Parameter Setup
+#https://www.bis.org/statistics/full_data_sets.htm
+#df <- read.csv(unzip(url("https://www.bis.org/statistics/full_webstats_credit_gap_dataflow_csv.zip")), sep=",")
+
+library(rio)
+# create a temporary directory
+td <- tempdir()
+# create a temporary file
+tf <- tempfile(tmpdir=td, fileext=".zip")
+# download file from internet into temporary location
+download.file("https://www.bis.org/statistics/full_webstats_credit_gap_dataflow_csv.zip", tf)
+# list zip archive
+file_names <- unzip(tf, list=TRUE)
+# extract files from zip file
+unzip(tf, exdir=td, overwrite=TRUE)
+# use when zip file has only one file
+data <- import(file.path(td, file_names$Name[1]))
+# use when zip file has multiple files
+#data_multiple <- lapply(file_names$Name, function(x) import(file.path(td, x)))
+# delete the files and directories
+unlink(td)
+
+
+setwd(dirname(getActiveDocumentContext()$path))
+setwd("plots")
+
+latest_date = file_names$Date[1]
+#---------------------
+#1. Data Collection
+#1.a. Credit 
+#-------------------------
+
+
+
+#Set up definition for get dataset function
+#datasets <- BIS::get_datasets()
+
+#All avaiable country list (with HP available) 
+#clist = "^(AT|AU|BE|BR|CA|CH|CL|CN|CO|CR|CZ|DE|DK|ES|EE|FI|FR|GB|GR|HU|ID|IN|IE|IS|IL|IT|JP|KR|LT|LU|LV|MX|NL|NO|NZ|PL|PT|RO|RU|SA|RS|SK|SI|SE|TR|US|ZA)"
+#rates <- get_bis(datasets$url[datasets$name == "Credit-to-GDP gaps"], quiet = TRUE)
+
+#Country 
+clist2 = "^(GB|US)"
+rates_plot2 <- data %>%
+  filter(grepl(clist2, BORROWERS_CTY))%>%
+  filter(CG_DTYPE == "A")
+  #mutate(date = as.Date(as.yearqtr(date, "%Y-q%q"))) %>%
+
+#filter(  optionA, 
+#         optionB, 
+#         optionC %in% c("a","b")) 
+#             is also available
+
+t_rates_plot2 <- transpose(rates_plot2)
+
+# get row and colnames in order
+colnames(t_rates_plot2) <- rownames(rates_plot2)
+rownames(t_rates_plot2) <- colnames(rates_plot2)
+t_rates_plot2 <- t_rates_plot2[-c(1:2,4:11),]
+colnames(t_rates_plot2) <- t_rates_plot2[1,]
+t_rates_plot2 <- t_rates_plot2[-1,]
+dim(t_rates_plot2)
+t_rates_plot2 <- na.omit(t_rates_plot2)
+dim(t_rates_plot2)
+
+t_rates_plot2$date<-rownames(t_rates_plot2[1])
+dim(t_rates_plot2)
+
+df <- t_rates_plot2
+# na.rm(t_rates_plot2)
+#credit <- xts(df, order.by=as.Date(df[,"date"], "%Y-Q%q"))
+
+library("zoo")
+df$date <- as.Date(as.yearqtr(df$date,           # Convert dates to quarterly
+                                 format = "%Y-Q%q"))
+
+df <- xts(df, order.by=df$date)
+df <- ts_ts(df)
+
+## Plotting
+maint = 'Credit-to-GDP Ratios'
+par(mar=c(8, 4, 4, 2), xpd=TRUE)
+
+
+plot(df[,1],main=maint, col=4,ylab="")
+lines(df[,2], col=2)
+legend("bottom", inset=-0.4, legend=c("Credit_UK", "Credit_US"),
+       col=c(4,2), lty=c(rep(1,2)),ncol=2)
+
+
+
+#pdfpath = sprintf('Combined_cycle_%s.pdf', country)
+
+pdf(file = "Credit-to-GDP.pdf",   # The directory you want to save the file in
+    width = 7, # The width of the plot in inches
+    height = 5.5) # The height of the plot in inches
+
+par(mfrow=c(1,1),cex=.8)
+
+maint = 'Credit-to-GDP Ratios'
+par(xpd=TRUE)
+
+
+plot(df[,1], col=4,ylab="",xlab="")
+lines(df[,2], col=2)
+legend("bottom", inset=-0.2, legend=c("Credit_UK", "Credit_US"),
+       col=c(4,2), lty=c(rep(1,2)),ncol=2)
+dev.off()
+
+
+# Credit Gap plot - UK
+
+## input data
+td="../1-4 step average BG combined cycle/GeneratedCycles_GB.csv"
+data1 <- import(td)
+data1 <- data1 %>% na.omit()
+data1 <- data1[,c("HP400k","combined cycle","date")]
+## conversion
+data1$date<-as.Date(data1$date)
+data1 <- xts(data1, order.by=data1$date)
+data1 <- ts_ts(data1)
+
+## plot
+pdf(file = "Credit-Gap-Comparison-UK.pdf",   # The directory you want to save the file in
+    width = 7, # The width of the plot in inches
+    height = 5.5) # The height of the plot in inches
+
+par(mfrow=c(1,1),cex=.8)
+
+maint = 'Credit-to-GDP Ratios'
+par(xpd=TRUE)
+
+
+plot(data1[,1], col=4,ylab="",xlab="")
+lines(data1[,2], col=2)
+legend("bottom", inset=-0.2, legend=c("GAP_BIS_UK", "GAP_COMBINED_UK"),
+       col=c(4,2), lty=c(rep(1,2)),ncol=2)
+dev.off()
+
+
+
+# Credit Gap plot - US
+
+## input data
+td="../1-4 step average BG combined cycle/GeneratedCycles_US.csv"
+data1 <- import(td)
+data1 <- data1 %>% na.omit()
+data1 <- data1[,c("HP400k","combined cycle","date")]
+## conversion
+data1$date<-as.Date(data1$date)
+data1 <- xts(data1, order.by=data1$date)
+data1 <- ts_ts(data1)
+
+## plot
+pdf(file = "Credit-Gap-Comparison-US.pdf",   # The directory you want to save the file in
+    width = 7, # The width of the plot in inches
+    height = 5.5) # The height of the plot in inches
+
+par(mfrow=c(1,1),cex=.8)
+
+maint = 'Credit-to-GDP Ratios'
+par(xpd=TRUE)
+
+
+plot(data1[,1], col=4,ylab="",xlab="")
+lines(data1[,2], col=2)
+legend("bottom", inset=-0.2, legend=c("GAP_BIS_US", "GAP_COMBINED_US"),
+       col=c(4,2), lty=c(rep(1,2)),ncol=2)
+dev.off()
