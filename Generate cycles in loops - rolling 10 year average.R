@@ -114,7 +114,6 @@ c.bn2=matrix(0,t,1)
 
 for(i in 1:t){
   
-  
   credit_hamilton = credit_hamilton1[(1):(i-1+24)]
   credit_hamilton = ts(credit_hamilton, start = startdate_hamilton, frequency =4)
   credit_xts = ts_xts(credit_hamilton)
